@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <h2>Add Book</h2>
+    <input id="title" placeholder="Title">
+    <input id="genre" placeholder="Genre">
+    <button onclick="addBook()">Add</button>
+
+    <h2>Books</h2>
+    <button onclick="loadBooks()">Refresh</button>
+    <ul id="list"></ul>
+
+    <script>
+        async function loadBooks() {
+            const res = await fetch('http://localhost:4004/odata/v4/task/Books');
+            const data = await res.json();
+
+            const list = document.getElementById('list');
+            console.log(data.value);
+            list.innerHTML = '';
+
+            data.value.forEach(b => {
+                const li = document.createElement('li');
+                li.innerHTML = `${b.ID} - ${b.title} - ${b.genre_ID} - ${b.completed}
+      <button onclick="deleteBook('${b.ID}')">Delete</button>`;
+                list.appendChild(li);
+            });
+        }
+
+        async function addBook() {
+            const title = document.getElementById('title').value;
+            const genre = document.getElementById('genre').value;
+
+            await fetch('http://localhost:4004/odata/v4/task/Books', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ID: Date.now(),                 // quick unique ID
+                    title: title,
+                    author: "Unknown",              // required field
+                    completed: false,
+                    genre_ID: 1
+                })
+            });
+
+            loadBooks();
+        }
+
+        async function deleteBook(id) {
+            await fetch(`/TaskService/Books(${id})`, {
+                method: 'DELETE'
+            });
+            loadBooks();
+        }
+    </script>
+
+</body>
+
+</html>
